@@ -757,6 +757,13 @@ class Publisher(Topic):
         'latched', meaning that any future subscribers will be sent
         that message immediately upon connection.
         @type  latch: bool
+        @param headers: If not None, a dictionary with additional header
+        key-values being used for future connections.
+        @type  headers: dict
+        @param queue_size: If not None, all messages will be queued for
+        publishing from a different thread.  A size of zero means an
+        infinite queue, which can be dangerous.
+        @type  queue_size: int
         @raise ROSException: if parameters are invalid     
         """
         super(Publisher, self).__init__(name, data_class, Registration.PUB)
@@ -771,7 +778,12 @@ class Publisher(Topic):
             self.impl.add_headers(headers)
         if queue_size is not None:
             self.impl.set_queue_size(queue_size)
-            
+        else:
+            import warnings
+            warnings.warn("The publisher should be created with an explicit keyword argument 'queue_size'. "
+                "If you are publishing faster than rospy can send the messages over the wire, rospy will start dropping old messages. "
+                "A value of 0 here means an infinite queue, which can be dangerous.", SyntaxWarning, stacklevel=2)
+
     def publish(self, *args, **kwds):
         """
         Publish message data object to this topic. 
